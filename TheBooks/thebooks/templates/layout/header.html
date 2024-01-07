@@ -1,0 +1,38 @@
+<header class="text-bg-dark shadow-sm bg-body rounded">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start py-3 mb-4">
+            <a href="/"
+               class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <span class="fs-1" style="font-family: WaterBrush; ">The Books</span>
+            </a>
+
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="/" class="item-focus nav-link px-3 text-dark fs-5">Trang chủ</a></li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link px-3 text-dark fs-5 btn dropdown-toggle" role="button" data-bs-toggle="dropdown">Thể loại</a>
+                    <ul class="dropdown-menu">
+                        {% for t in the_loai %}
+                        <li><a class="dropdown-item" href="/?the_loai_id={{ t.id }}">{{ t.ten }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li><a href="#" class="nav-link px-3 text-dark fs-5">Pricing</a></li>
+                <li><a href="#" class="nav-link px-3 text-dark fs-5">FAQs</a></li>
+                <li><a href="#" class="nav-link px-3 text-dark fs-5">About</a></li>
+            </ul>
+
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
+                <input type="search" class="form-control form-control-dark text-bg-dark" placeholder="Search..."
+                       aria-label="Search">
+            </form>
+
+            <div class="px-4 me-4 fs-4"><a href="#"><i class="fa-solid fa-cart-shopping"></i></a><span
+                    class="bg-danger text-dark px-3 ms-3">1</span></div>
+
+            <div class="text-end">
+                <button type="button" class="btn btn-outline-dark me-2">Login</button>
+                <button type="button" class="btn btn-warning">Sign-up</button>
+            </div>
+        </div>
+    </div>
+</header>
