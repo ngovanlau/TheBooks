@@ -1,28 +1,28 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from thebooks import db, app
+from flask_login import UserMixin
 from datetime import datetime
-from enum import Enum as AppEnum
+import enum
 
 
 class BaseModel(db.Model):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ten = Column(String(50), nullable=False, unique=True)
     active = Column(Boolean, default=True)
+
+
+class TheLoai(BaseModel):
+    ten = Column(String(50), nullable=False, unique=True)
+    sachs = relationship('Sach', backref='the_loai', lazy=True)
 
     def __str__(self):
         return self.ten
 
 
-class TheLoai(BaseModel):
-    sachs = relationship('Sach', backref='the_loai', lazy=True)
-
-
-
-
 class NhaXuatBan(BaseModel):
+    ten = Column(String(50), nullable=False, unique=True)
     dia_chi = Column(String(200))
     sachs = relationship('Sach', backref='nha_xuat_ban', lazy=True)
 
@@ -36,9 +36,14 @@ tacgia_sach = db.Table('tacgia_sach',
 
 
 class TacGia(BaseModel):
-    pass
+    ten = Column(String(50), nullable=False)
+
+    def __str__(self):
+        return self.ten
+
 
 class Sach(BaseModel):
+    ten = Column(String(50), nullable=False, unique=True)
     gia = Column(Float, default=50000)
     so_luong = Column(Integer, default=0)
     the_loai_id = Column(Integer, ForeignKey(TheLoai.id), nullable=False)
@@ -46,9 +51,12 @@ class Sach(BaseModel):
     tac_gias = relationship('TacGia', secondary='tacgia_sach', lazy='subquery', backref=backref('sachs', lazy=True))
     phieu_nhaps = relationship('ChiTietPhieuNhap', backref='sach', lazy=True)
     hinh_anhs = relationship('HinhAnh', backref='sach', lazy=True)
-    # khach_hangs = relationship('DanhGia', backref='sach', lazy=True)
+    khach_hangs = relationship('DanhGia', backref='sach', lazy=True)
     don_hangs = relationship('ChiTietDonHang', backref='sach', lazy=True)
     quy_dinh_nhap_sach = relationship('QuyDinhNhapSach', backref='sach', uselist=False, lazy=True)
+
+    def __str__(self):
+        return self.ten
 
 
 class HinhAnh(db.Model):
@@ -71,15 +79,15 @@ class ChiTietPhieuNhap(db.Model):
     phieu_nhap_id = Column(Integer, ForeignKey(PhieuNhap.id), nullable=False)
 
 
-# class DanhGia(db.Model):
-#     id = Column(Integer, primary_key=True, autoincrement=True)
-#     danh_gia = Column(Integer, default=10)
-#     nhan_xet = Column(String(500))
-#     sach_id = Column(Integer, ForeignKey(Sach.id), nullable=False)
-#     khach_hang_id = Column(Integer, ForeignKey('khach_hang.id'), nullable=False)
+class DanhGia(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    danh_gia = Column(Integer, default=10)
+    nhan_xet = Column(String(500))
+    sach_id = Column(Integer, ForeignKey(Sach.id), nullable=False)
+    khach_hang_id = Column(Integer, ForeignKey('khach_hang.id'), nullable=False)
 
 
-class UserRole(AppEnum):
+class UserRole(enum.Enum):
     quan_tri_vien = 1
     quan_ly = 2
     quan_ly_kho = 3
@@ -87,23 +95,26 @@ class UserRole(AppEnum):
     khach_hang = 5
 
 
-class NguoiDung(BaseModel):
+class NguoiDung(BaseModel, UserMixin):
+    ten = Column(String(50), nullable=False)
     username = Column(String(30), nullable=False, unique=True)
-    password = Column(String(30), nullable=False)
+    password = Column(String(200), nullable=False)
     email = Column(String(30))
     sdt = Column(String(20))
     dia_chi = Column(String(200))
     role = Column(Enum(UserRole), default=UserRole.khach_hang)
-    khach_hangs = relationship('KhachHang', uselist=False, backref='nguoi_dung', lazy=True)
-    nhan_viens = relationship('NhanVien', uselist=False, backref='nguoi_dung', lazy=True)
-    quan_tri_viens = relationship('QuanTriVien', uselist=False, backref='nguoi_dung', lazy=True)
-    quan_lys = relationship('QuanLy', uselist=False, backref='nguoi_dung', lazy=True)
-    quan_ly_khos = relationship('QuanLyKho', uselist=False, backref='nguoi_dung', lazy=True)
+    khach_hang = relationship('KhachHang', uselist=False, backref='nguoi_dung', lazy=True)
+    nhan_vien = relationship('NhanVien', uselist=False, backref='nguoi_dung', lazy=True)
+    quan_tri_vien = relationship('QuanTriVien', uselist=False, backref='nguoi_dung', lazy=True)
+    quan_ly = relationship('QuanLy', uselist=False, backref='nguoi_dung', lazy=True)
+    quan_ly_kho = relationship('QuanLyKho', uselist=False, backref='nguoi_dung', lazy=True)
+
+    def __str__(self):
+        return self.ten
 
 
 class KhachHang(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    role = UserRole.nhan_vien
     avatar = Column(String(200), default='link')
     nguoi_dung_id = Column(Integer, ForeignKey(NguoiDung.id), nullable=False)
     # sachs = relationship('DanhGia', backref='khach_hang', lazy=True)
@@ -112,12 +123,11 @@ class KhachHang(db.Model):
 
 class NhanVien(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    role = UserRole.nhan_vien
     nguoi_dung_id = Column(Integer, ForeignKey(NguoiDung.id), nullable=False)
     don_hangs = relationship('DonHang', backref='nhan_vien', lazy=True)
 
 
-class StatusEnum(AppEnum):
+class StatusEnum(enum.Enum):
     cho_thanh_toan = 1
     dang_giao = 2
     da_thanh_toan = 3
@@ -144,20 +154,17 @@ class ChiTietDonHang(db.Model):
 
 class QuanLyKho(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    role = UserRole.quan_ly_kho
     nguoi_dung_id = Column(Integer, ForeignKey(NguoiDung.id), nullable=False)
     phieu_nhap = relationship('PhieuNhap', backref='quan_ly_kho', lazy=True)
 
 
 class QuanLy(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    role = UserRole.quan_ly
     nguoi_dung_id = Column(Integer, ForeignKey(NguoiDung.id), nullable=False)
 
 
 class QuanTriVien(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    role = UserRole.quan_tri_vien
     nguoi_dung_id = Column(Integer, ForeignKey(NguoiDung.id), nullable=False)
 
 

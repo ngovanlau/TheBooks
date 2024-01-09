@@ -1,6 +1,7 @@
 from thebooks import admin, db, dao
 from thebooks.models import Sach, NhaXuatBan, TacGia, TheLoai, QuyDinhNhapSach, HinhAnh, PhieuNhap, ChiTietPhieuNhap, NguoiDung, NhanVien, QuanLy, QuanTriVien, QuanLyKho
 from flask_admin.contrib.sqla import ModelView
+from flask_login import logout_user, current_user
 
 
 class MyView(ModelView):

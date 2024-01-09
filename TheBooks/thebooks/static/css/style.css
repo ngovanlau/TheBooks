@@ -1,24 +1,28 @@
 @font-face {
     font-family: RobotoMono;
-    src: url(/thebooks/static/fonts/RobotoMono-VariableFont_wght.ttf);
+    src: url("/static/fonts/RobotoMono-VariableFont_wght.ttf");
 }
 
 @font-face {
     font-family: WaterBrush;
-    src: url(/thebooks/static/fonts/WaterBrush-Regular.ttf);
+    src: url("/static/fonts/WaterBrush-Regular.ttf");
 }
 
 * {
-    font-family: 'Oswald', sans-serif;
+    font-family: RobotoMono;
+}
+
+.the-books {
+    font-family: WaterBrush;
 }
 
 li > a.nav-link:hover{
-    font-weight: bold;
+    font-family: WaterBrush;
     transition: 0.2s linear;
 }
 
 li > a.nav-link:focus {
-    font-weight: bold;
+    font-family: WaterBrush;
     transition: 0.2s linear;
     box-shadow: none;
 }
@@ -32,4 +36,8 @@ li > a.nav-link:focus {
     font-weight: bold;
     font-family: WaterBrush;
     color: aquamarine;
+}
+
+li.page-item:hover {
+    background-color: cadetblue;
 }
