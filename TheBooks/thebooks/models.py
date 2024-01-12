@@ -46,6 +46,7 @@ class Sach(BaseModel):
     ten = Column(String(50), nullable=False, unique=True)
     gia = Column(Float, default=50000)
     so_luong = Column(Integer, default=0)
+
     the_loai_id = Column(Integer, ForeignKey(TheLoai.id), nullable=False)
     nha_xuat_ban_id = Column(Integer, ForeignKey(NhaXuatBan.id), nullable=False)
     tac_gias = relationship('TacGia', secondary='tacgia_sach', lazy='subquery', backref=backref('sachs', lazy=True))
@@ -142,7 +143,7 @@ class DonHang(db.Model):
     ngay_huy = Column(DateTime)
     sachs = relationship('ChiTietDonHang', backref='don_hang', lazy='subquery')
     khach_hang_id = Column(Integer, ForeignKey(KhachHang.id), nullable=False)
-    nhan_vien_id = Column(Integer, ForeignKey(NhanVien.id), nullable=False)
+    nhan_vien_id = Column(Integer, ForeignKey(NhanVien.id))
 
 
 class ChiTietDonHang(db.Model):

@@ -45,17 +45,36 @@
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
-                {% if request.args.get('the_loai_id') %}
-                {% for i in range(so_trang) %}
-                <li class="page-item">
-                    <a class="page-link" href="/?the_loai_id={{request.args.get('the_loai_id')}}&trang={{ i+1 }}">{{ i+1
-                        }}</a>
-                </li>
-                {% endfor %}
+                {% if request.args.get('the_loai_id') and request.args.get('kw')%}
+                    {% for i in range(so_trang) %}
+                    <li class="page-item">
+                        <a class="page-link" href="/?the_loai_id={{request.args.get('the_loai_id')}}&trang={{ i+1 }}&kw={{request.args.get('kw')}}">{{ i+1 }}</a>
+                    </li>
+                    {% endfor %}
+                {% elif request.args.get('the_loai_id') %}
+                    {% for i in range(so_trang) %}
+                    <li class="page-item">
+                        <a class="page-link" href="/?the_loai_id={{request.args.get('the_loai_id')}}&trang={{ i+1 }}">{{ i+1 }}</a>
+                    </li>
+                    {% endfor %}
+                {% elif request.args.get('kw') %}
+                    {% if request.args.get('the_loai_id')%}
+                        {% for i in range(so_trang) %}
+                            <li class="page-item">
+                                <a class="page-link" href="/?the_loai_id={{request.args.get('the_loai_id')}}&kw={{request.args.get('kw')}}&trang={{ i+1 }}">{{ i+1 }}</a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        {% for i in range(so_trang) %}
+                            <li class="page-item">
+                                <a class="page-link" href="/?kw={{request.args.get('kw')}}&trang={{ i+1 }}">{{ i+1 }}</a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
                 {% else %}
-                {% for i in range(so_trang) %}
-                <li class="page-item"><a class="page-link" href="/?trang={{ i+1 }}">{{ i+1 }}</a></li>
-                {% endfor %}
+                    {% for i in range(so_trang) %}
+                    <li class="page-item"><a class="page-link" href="/?trang={{ i+1 }}">{{ i+1 }}</a></li>
+                    {% endfor %}
                 {% endif %}
                 <li class="page-item">
                     <a class="page-link" href="#" aria-label="Next">
@@ -65,11 +84,27 @@
             </ul>
         </nav>
 
-        <form class="w-100 d-flex justify-content-end" role="search">
-            <input type="search" class="form-control form-control-dark text-bg-dark w-25" placeholder="Search..."
+        <div class="w-100 d-flex justify-content-end">
+            <input type="text" id="searchInput" class="form-control form-control-dark w-25" placeholder="Search..."
                    aria-label="Search" name="kw">
-            <button class="btn btn-primary w-auto ms-4" type="submit">Tìm</button>
-        </form>
+            <button id="searchButton" onclick="addParamToURL()" class="btn btn-primary w-auto ms-4" type="submit">Tìm</button>
+        </div>
+        <script>
+            function addParamToURL() {
+                const newParamValue = document.getElementById('searchInput').value.trim();
+                const currentURL = window.location.href;
+                let newURL = currentURL;
+
+                if (newParamValue !== '') {
+                    if (currentURL.includes('?')) {
+                        newURL += `&kw=${newParamValue}`;
+                    } else {
+                        newURL += `?kw=${newParamValue}`;
+                    }
+                }
+                 window.location.href = newURL
+            }
+        </script>
     </div>
 
     <div class="row mt-2 justify-content-center">
@@ -79,14 +114,9 @@
                  style="width: 16rem;" class="card-img-top align-self-center" alt="...">
             <div class="card-body">
                 <h5 class="card-title">{{ s.ten }}</h5>
-                <p class="card-text">Tác giả:
-                    {% for tg in s.tac_gias %}
-                    <span>{{ tg }}</span>
-                    {% endfor %}
-                </p>
-                <p class="card-text">{{s.gia}} VNĐ</p>
+                <p class="card-text">{{ s.gia }} VNĐ</p>
                 <a href="#" class="btn btn-primary">Xem chi tiết</a>
-                <a href="#" class="btn btn-primary">Mua</a>
+                <button class="btn btn-primary" onclick="addToCart({{ s.id }}, '{{ s.ten }}', {{ s.gia }}) ">Mua</button>
             </div>
         </div>
         {% endfor %}

@@ -9,7 +9,7 @@
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                 <li><a href="/" class="item-focus nav-link px-3 text-dark fs-5">Trang chủ</a></li>
                 <li class="dropdown">
-                    <a href="#" class="nav-link px-3 text-dark fs-5 btn dropdown-toggle" role="button"
+                    <a href="javascript:;" class="nav-link px-3 text-dark fs-5 btn dropdown-toggle" role="button"
                        data-bs-toggle="dropdown">Thể loại</a>
                     <ul class="dropdown-menu">
                         {% for t in the_loai %}
@@ -17,37 +17,38 @@
                         {% endfor %}
                     </ul>
                 </li>
-                <li><a href="#" class="nav-link px-3 text-dark fs-5">Pricing</a></li>
-                <li><a href="#" class="nav-link px-3 text-dark fs-5">FAQs</a></li>
-                <li><a href="#" class="nav-link px-3 text-dark fs-5">About</a></li>
             </ul>
 
-            <div class="px-4 me-4 fs-4"><a href="#"><i class="fa-solid fa-cart-shopping"></i></a><span
-                    class="bg-danger text-dark px-3 ms-3">1</span></div>
+            <div class="px-3 py-1 mx-2 fs-4 position-relative">
+                <a href="/gio_hang"><i class="fs-3 fa-solid fa-cart-shopping"></i></a>
+                <span class="fs-6 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    <span class="cart-count">{{ thong_tin_gio_hang.tong_so_luong }}</span>
+                </span>
+            </div>
 
             {% if current_user.is_authenticated %}
-            <div class="flex-shrink-0 dropdown">
+            <div class="flex-shrink-0 dropdown ms-5">
                 <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
+                    <img src="{{ current_user.khach_hang.avatar }}" alt="mdo" width="50" height="50"
+                         class="rounded-circle">
                 </a>
                 <ul class="dropdown-menu text-small shadow" style="">
-                    <li><a class="dropdown-item" href="#">New project...</a></li>
+                    <li><a class="dropdown-item" href="#">{{ current_user.ten }}</a></li>
                     <li><a class="dropdown-item" href="#">Settings</a></li>
                     <li><a class="dropdown-item" href="#">Profile</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-item" href="#">Sign out</a></li>
+                    <li><a class="dropdown-item" href="/logout">Logout</a></li>
                 </ul>
             </div>
             {% else %}
-            <div class="text-end">
+            <div class="text-end ms-5">
                 <a href="/login" type="button" class="btn btn-outline-dark me-2">Login</a>
                 <a href="/register" class="btn btn-warning">Sign-up</a>
             </div>
             {% endif %}
-
         </div>
     </div>
 </header>

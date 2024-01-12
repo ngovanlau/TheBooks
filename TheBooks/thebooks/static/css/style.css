@@ -17,27 +17,18 @@
 }
 
 li > a.nav-link:hover{
-    font-family: WaterBrush;
+    scale: 110%;
+    font-weight: bold;
     transition: 0.2s linear;
 }
 
 li > a.nav-link:focus {
-    font-family: WaterBrush;
+    scale: 110%;
+    font-weight: bold;
     transition: 0.2s linear;
-    box-shadow: none;
 }
 
 .book-card:hover {
     scale: 103%;
     transition: 0.2s linear;
-}
-
-.item-focus {
-    font-weight: bold;
-    font-family: WaterBrush;
-    color: aquamarine;
-}
-
-li.page-item:hover {
-    background-color: cadetblue;
 }

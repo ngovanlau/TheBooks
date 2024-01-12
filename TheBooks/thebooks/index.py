@@ -1,7 +1,7 @@
 import math
 
-from flask import render_template, request, redirect
-from thebooks import app, dao, login_manager
+from flask import render_template, request, redirect, session, jsonify
+from thebooks import app, dao, login_manager, utils
 from flask_login import login_user, logout_user
 from thebooks.admin import *
 
@@ -12,12 +12,10 @@ def index():
     the_loai_id = request.args.get('the_loai_id')
     trang = request.args.get('trang')
 
-    sach = dao.lay_sach(kw, the_loai_id, trang)
+    du_lieu = dao.lay_sach(kw, the_loai_id, trang)
+    sach = du_lieu['sach']
 
-    if the_loai_id:
-        so_trang = math.ceil(dao.dem_sach_theo_the_loai(the_loai_id) / app.config['PAGE_SIZE'])
-    else:
-        so_trang = math.ceil(dao.dem_sach() / app.config['PAGE_SIZE'])
+    so_trang = math.ceil(du_lieu['so_sach'] / app.config['PAGE_SIZE'])
 
     return render_template('index.html', sach=sach, so_trang=so_trang)
 
@@ -26,6 +24,7 @@ def index():
 def common_respones():
     return {
         'the_loai': dao.lay_the_loai(),
+        'thong_tin_gio_hang': utils.cart_info(session.get('gio_hang'))
     }
 
 
@@ -75,6 +74,74 @@ def login():
 @login_manager.user_loader
 def load_user(id):
     return dao.lay_nguoi_dung_theo_id(id)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect('/')
+
+
+@app.route('/gio_hang')
+def cart():
+    return render_template('cart.html')
+
+
+@app.route('/api/gio_hang', methods=['post'])
+def add_to_cart():
+    data = request.json
+
+    gio_hang = session.get('gio_hang')
+    if gio_hang is None:
+        gio_hang = {}
+
+    id = str(data.get('id'))
+    if id in gio_hang:
+        gio_hang[id]['so_luong'] += 1
+    else:
+        gio_hang[id] = {
+            'id': id,
+            'ten': data.get('ten'),
+            'gia': data.get('gia'),
+            'so_luong': 1
+        }
+
+    session['gio_hang'] = gio_hang
+
+    return jsonify(utils.cart_info(gio_hang))
+
+
+@app.route('/api/gio_hang/<sach_id>', methods=['put'])
+def update_cart(sach_id):
+    gio_hang = session.get('gio_hang')
+
+    if gio_hang and sach_id in gio_hang:
+        so_luong = request.json.get('so_luong')
+        gio_hang[sach_id]['so_luong'] = int(so_luong)
+
+    session['gio_hang'] = gio_hang
+    return jsonify(utils.cart_info(gio_hang))
+
+
+@app.route('/api/gio_hang/<sach_id>', methods=['delete'])
+def delete_cart(sach_id):
+    gio_hang = session.get('gio_hang')
+
+    if gio_hang and sach_id in gio_hang:
+        del gio_hang[sach_id]
+
+    session['gio_hang'] = gio_hang
+    return jsonify(utils.cart_info(gio_hang))
+
+
+@app.route('/api/pay', methods=['post'])
+def pay():
+    gio_hang = session.get('gio_hang')
+    if dao.them_don_hang(gio_hang):
+        del session['gio_hang']
+        return jsonify({'status': 200})
+
+    return jsonify({'status': 500, 'error_message': 'Something wrong!'})
 
 
 if __name__ == '__main__':

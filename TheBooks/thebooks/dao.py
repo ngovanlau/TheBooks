@@ -1,6 +1,6 @@
 import hashlib
 import cloudinary.uploader
-from thebooks.models import Sach, TheLoai, NguoiDung, KhachHang, UserRole
+from thebooks.models import Sach, TheLoai, NguoiDung, KhachHang, UserRole, DonHang, ChiTietDonHang
 from thebooks import app, db
 from flask_login import current_user
 
@@ -20,27 +20,28 @@ def lay_sach(kw=None, the_loai_id=None, trang=None):
     if the_loai_id:
         sach = sach.filter(Sach.the_loai_id.__eq__(the_loai_id))
 
+    so_sach = sach.count()
+
     page_size = app.config['PAGE_SIZE']
     if trang:
         trang = int(trang)
         start = (trang - 1) * page_size
-        return sach.slice(start, start + page_size)
+        return {
+            'sach': sach.slice(start, start + page_size).all(),
+            'so_sach': so_sach
+        }
     else:
-        return sach.slice(0, page_size)
-
-
-def dem_sach():
-    return Sach.query.count()
-
-
-def dem_sach_theo_the_loai(the_loai_id):
-    return Sach.query.filter(Sach.the_loai_id.__eq__(the_loai_id)).count()
+        return {
+            'sach': sach.slice(0, page_size).all(),
+            'so_sach': so_sach
+        }
 
 
 def them_nguoi_dung(ten=None,username=None, password=None, sdt=None, email=None, dia_chi=None, role=None):
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
     nguoi_dung = NguoiDung(ten=ten, username=username, password=password, sdt=sdt, email=email, dia_chi=dia_chi, role=role)
 
+    db.session.add(nguoi_dung)
     return nguoi_dung
 
 
@@ -60,6 +61,25 @@ def chung_thuc_nguoi_dung(username=None, password=None):
 
 def lay_nguoi_dung_theo_id(id):
     return NguoiDung.query.get(id)
+
+
+def them_don_hang(gio_hang=None):
+    if gio_hang:
+        h = DonHang(khach_hang=current_user.khach_hang)
+        db.session.add(h)
+
+        for g in gio_hang.values():
+            c = ChiTietDonHang(sach_id=g['id'], so_luong=g['so_luong'], don_hang=h)
+            db.session.add(c)
+
+        try:
+            db.session.commit()
+        except:
+            return False
+        else:
+            return True
+
+    return False
 
 
 if __name__ == '__main__':
