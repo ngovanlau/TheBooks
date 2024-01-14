@@ -58,7 +58,7 @@ function deleteCart(id, obj) {
 }
 
 function pay() {
-    fetch('/api/pay', {
+    fetch('/api/dat_hang', {
         method: 'post'
     }).then(res => res.json()).then(data => {
         if (data.status === 200)

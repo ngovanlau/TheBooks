@@ -1,3 +1,5 @@
+import hashlib
+
 from sqlalchemy import Column, Integer, String, Float, Boolean, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from thebooks import db, app
@@ -100,8 +102,8 @@ class NguoiDung(BaseModel, UserMixin):
     ten = Column(String(50), nullable=False)
     username = Column(String(30), nullable=False, unique=True)
     password = Column(String(200), nullable=False)
-    email = Column(String(30))
-    sdt = Column(String(20))
+    email = Column(String(30), unique=True)
+    sdt = Column(String(20), unique=True)
     dia_chi = Column(String(200))
     role = Column(Enum(UserRole), default=UserRole.khach_hang)
     khach_hang = relationship('KhachHang', uselist=False, backref='nguoi_dung', lazy=True)

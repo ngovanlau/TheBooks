@@ -11,6 +11,14 @@ def lay_the_loai():
     return the_loai.all()
 
 
+def lay_tat_ca_sach():
+    return Sach.query.filter(Sach.active.__eq__(True)).all()
+
+
+def lay_sach_theo_id(id):
+    return Sach.query.get(id)
+
+
 def lay_sach(kw=None, the_loai_id=None, trang=None):
     sach = Sach.query
 
@@ -63,9 +71,11 @@ def lay_nguoi_dung_theo_id(id):
     return NguoiDung.query.get(id)
 
 
-def them_don_hang(gio_hang=None):
+def them_don_hang(gio_hang=None, khach_hang_id=None, nhan_vien_id=None):
     if gio_hang:
-        h = DonHang(khach_hang=current_user.khach_hang)
+        khach_hang = lay_nguoi_dung_theo_id(khach_hang_id).khach_hang
+        nhan_vien = lay_nguoi_dung_theo_id(nhan_vien_id).nhan_vien
+        h = DonHang(khach_hang=khach_hang, nhan_vien=nhan_vien)
         db.session.add(h)
 
         for g in gio_hang.values():
@@ -80,6 +90,10 @@ def them_don_hang(gio_hang=None):
             return True
 
     return False
+
+
+def lay_khach_hang_theo_sdt(sdt=None):
+    return NguoiDung.query.filter(NguoiDung.sdt.__eq__(sdt)).first()
 
 
 if __name__ == '__main__':

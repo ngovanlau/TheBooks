@@ -1,4 +1,4 @@
-def cart_info(gio_hang):
+def cart_info(gio_hang=None):
     tong_tien, tong_so_luong = 0, 0
 
     if gio_hang:

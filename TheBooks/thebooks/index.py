@@ -52,6 +52,18 @@ def register():
     return render_template('register.html', error_message=error_message)
 
 
+@app.route('/admin/dang_nhap', methods=['post'])
+def login_admin():
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    user = dao.chung_thuc_nguoi_dung(username=username, password=password)
+    if user:
+        login_user(user)
+
+    return redirect('/admin')
+
+
 @app.route('/login', methods=['get', 'post'])
 def login():
     if request.method.__eq__('POST'):
@@ -134,11 +146,86 @@ def delete_cart(sach_id):
     return jsonify(utils.cart_info(gio_hang))
 
 
-@app.route('/api/pay', methods=['post'])
+@app.route('/api/dat_hang', methods=['post'])
 def pay():
     gio_hang = session.get('gio_hang')
-    if dao.them_don_hang(gio_hang):
+    if dao.them_don_hang(gio_hang=gio_hang, khach_hang_id=current_user.id):
         del session['gio_hang']
+        return jsonify({'status': 200})
+
+    return jsonify({'status': 500, 'error_message': 'Something wrong!'})
+
+
+@app.route('/api/don_hang/<sach_id>', methods=['get'])
+def add_order(sach_id):
+    don_hang = session.get('don_hang')
+    if don_hang is None:
+        don_hang = {}
+
+    if sach_id in don_hang:
+        don_hang[sach_id]['so_luong'] += 1
+    else:
+        sach = dao.lay_sach_theo_id(sach_id)
+        don_hang[sach_id] = {
+            'id': sach.id,
+            'ten': sach.ten,
+            'the_loai': sach.the_loai.ten,
+            'gia': sach.gia,
+            'so_luong': 1
+        }
+
+    session['don_hang'] = don_hang
+
+    data = {
+        'sach': don_hang[sach_id],
+        'thong_tin': utils.cart_info(don_hang)
+    }
+
+    return jsonify(data)
+
+
+@app.route('/api/don_hang/<sach_id>', methods=['put'])
+def update_order(sach_id):
+    don_hang = session.get('don_hang')
+    if don_hang and sach_id in don_hang:
+        so_luong = request.json.get('so_luong')
+        don_hang[sach_id]['so_luong'] = int(so_luong)
+
+    session['don_hang'] = don_hang
+    return jsonify(utils.cart_info(don_hang))
+
+
+@app.route('/api/don_hang/<sach_id>', methods=['delete'])
+def delete_order(sach_id):
+    don_hang = session.get('don_hang')
+    if don_hang and sach_id in don_hang:
+        del don_hang[sach_id]
+
+    session['don_hang'] = don_hang
+    return jsonify(utils.cart_info(don_hang))
+
+
+@app.route('/api/khach_hang/<sdt>', methods=['get'])
+def get_customer(sdt):
+    khach_hang = dao.lay_khach_hang_theo_sdt(sdt)
+    data = {}
+    if khach_hang:
+        data = {
+            'id': khach_hang.id,
+            'ten': khach_hang.ten,
+            'sdt': khach_hang.sdt,
+            'dia_chi': khach_hang.dia_chi
+        }
+
+    return jsonify(data)
+
+
+@app.route('/api/don_hang/dat_hang', methods=['post'])
+def pay_order():
+    don_hang = session.get('don_hang')
+    khach_hang_id = request.json.get('khach_hang_id')
+    if dao.them_don_hang(gio_hang=don_hang, khach_hang_id=khach_hang_id, nhan_vien_id=current_user.id):
+        del session['don_hang']
         return jsonify({'status': 200})
 
     return jsonify({'status': 500, 'error_message': 'Something wrong!'})
