@@ -31,16 +31,15 @@
                 <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
                    data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="{{ current_user.khach_hang.avatar }}" alt="mdo" width="50" height="50"
-                         class="rounded-circle">
+                         class="rounded-circle"/>
                 </a>
                 <ul class="dropdown-menu text-small shadow" style="">
-                    <li><a class="dropdown-item" href="#">{{ current_user.ten }}</a></li>
-                    <li><a class="dropdown-item" href="#">Settings</a></li>
-                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li><a class="dropdown-item" href="/ho_so">{{ current_user.ten }}</a></li>
+                    <li><a class="dropdown-item" href="/ho_so">Hồ sơ</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                    <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
                 </ul>
             </div>
             {% else %}

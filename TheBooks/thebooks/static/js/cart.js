@@ -1,10 +1,8 @@
-function addToCart(id, name, price) {
+function addToCart(id) {
     fetch('/api/gio_hang', {
         method: 'post',
         body: JSON.stringify({
-            'id': id,
-            'ten': name,
-            'gia': price
+            'id': id
         }),
         headers: {
             'Content-Type': 'application/json'
@@ -61,9 +59,11 @@ function pay() {
     fetch('/api/dat_hang', {
         method: 'post'
     }).then(res => res.json()).then(data => {
-        if (data.status === 200)
+        if (data.status === 200) {
+            alert('Cảm ơn bạn đã đặt hàng');
             location.reload();
+        }
         else
-            alert(data.error_message)
+            alert(data.error_message);
     })
 }

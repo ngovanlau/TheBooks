@@ -110,13 +110,13 @@
     <div class="row mt-2 justify-content-center">
         {% for s in sach %}
         <div class="book-card col-xs-12 col-md-3 card shadow pt-3 m-2 bg-body rounded" style="width: 18rem;">
-            <img src="{{ url_for('static', filename='images/tro-ve-khong-trai-nghiem-ho-oponopono.jpg') }}"
+            <img src="{{ s.hinh_anh }}"
                  style="width: 16rem;" class="card-img-top align-self-center" alt="...">
             <div class="card-body">
                 <h5 class="card-title">{{ s.ten }}</h5>
                 <p class="card-text">{{ s.gia }} VNĐ</p>
-                <a href="#" class="btn btn-primary">Xem chi tiết</a>
-                <button class="btn btn-primary" onclick="addToCart({{ s.id }}, '{{ s.ten }}', {{ s.gia }}) ">Mua</button>
+                <a href="/sach/{{s.id}}" class="btn btn-primary">Xem chi tiết</a>
+                <button class="btn btn-primary" onclick="addToCart({{ s.id }})">Mua</button>
             </div>
         </div>
         {% endfor %}
@@ -124,3 +124,6 @@
 </div>
 {% endblock %}
 
+{% block js %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}

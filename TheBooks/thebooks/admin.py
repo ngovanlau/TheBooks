@@ -1,6 +1,6 @@
 from thebooks import admin, db, dao, utils
-from thebooks.models import Sach, NhaXuatBan, TacGia, TheLoai, QuyDinhNhapSach, HinhAnh, PhieuNhap, ChiTietPhieuNhap, NguoiDung, NhanVien, QuanLy, QuanTriVien, QuanLyKho
-from flask import session, redirect
+from thebooks.models import Sach, TheLoai, KhachHang, QuyDinhNhapSach, PhieuNhap, ChiTietPhieuNhap, NguoiDung, NhanVien, QuanLy, QuanTriVien, QuanLyKho
+from flask import session, redirect, request
 from flask_admin.contrib.sqla import ModelView
 from flask_login import logout_user, current_user
 from flask_admin import expose, BaseView
@@ -27,7 +27,7 @@ class AuthenticatedQuanLy(MyView):
         return current_user.is_authenticated and current_user.role == UserRole.quan_ly
 
 
-class AuthenticatedQuantri(BaseView):
+class AuthenticatedQuanTri(BaseView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == UserRole.quan_tri_vien
 
@@ -38,38 +38,32 @@ class AuthenticatedKhachHang(BaseView):
 
 
 class SachView(AuthenticatedQuanLy):
-    column_list = ['id', 'ten', 'gia', 'so_luong', 'the_loai', 'tac_gias', 'nha_xuat_ban']
-    form_columns = ['ten', 'gia', 'so_luong', 'the_loai_id', 'tac_gias', 'nha_xuat_ban_id', 'active']
+    column_list = ['id', 'ten', 'gia', 'so_luong', 'the_loai', 'tac_gia', 'nxb']
+    form_columns = ['ten', 'gia', 'so_luong', 'the_loai_id', 'tac_gia', 'nxb', 'active']
 
 
 class TheLoaiView(AuthenticatedQuanLy):
     pass
 
 
-class TacGiaView(AuthenticatedQuanLy):
-    pass
-
-
-class NhaXuatBanView(AuthenticatedQuanLy):
-    pass
-
-
-class TheLoaiView(AuthenticatedQuanLy):
-    pass
-
-
-class HinhAnhView(AuthenticatedQuanLy):
-    pass
-
-
-class QuyDinhNhapSachView(AuthenticatedQuantri):
+class QuyDinhNhapSachView(AuthenticatedQuanTri):
     column_list = ['so_luong_nhap_toi_thieu', 'so_luong_ton_toi_thieu', 'sach_id']
 
 
-class ThongKeView(AuthenticatedQuantri):
+class ThongKeTheoDoanhThuView(AuthenticatedQuanTri):
     @expose('/')
     def index(self):
-        return self.render('admin/stats.html')
+        thang = request.args.get('thang')
+        nam = request.args.get('nam')
+        return self.render('admin/stats-revenuo.html', thong_ke=dao.thong_ke_doanh_thu_theo_thang(thang=thang, nam=nam), nam=nam, thang=thang)
+
+
+class ThongKeTheoTanSuatView(AuthenticatedQuanTri):
+    @expose('/')
+    def index(self):
+        thang = request.args.get('thang')
+        nam = request.args.get('nam')
+        return self.render('admin/stats-frequency.html', thong_ke=dao.thong_ke_theo_tan_suat(thang=thang, nam=nam), nam=nam, thang=thang)
 
 
 class BanSachView(AuthenticatedNhanVien):
@@ -79,34 +73,45 @@ class BanSachView(AuthenticatedNhanVien):
 
 
 class PhieuNhapView(AuthenticatedQuanLyKho):
-    pass
+    form_columns = ['ngay_nhap', 'quan_ly_kho_id']
+    column_list = ['id', 'ngay_nhap', 'quan_ly_kho.nguoi_dung']
 
 
 class ChiTietPhieuNhapView(AuthenticatedQuanLyKho):
+    column_list = ['sach', 'phieu_nhap', 'so_luong']
+    form_columns = ['sach_id', 'phieu_nhap_id', 'so_luong']
+
+
+class NhanVienView(AuthenticatedQuanLy):
+    column_list = ['id', 'nguoi_dung']
+    form_columns = ['nguoi_dung_id']
+
+
+class KhachHangView(AuthenticatedQuanLy):
+    column_list = ['id', 'nguoi_dung']
+    form_columns = ['nguoi_dung_id']
+
+
+class QuanLyView(AuthenticatedQuanLy):
+    column_list = ['id', 'nguoi_dung']
+    form_columns = ['nguoi_dung_id']
+
+
+class QuanLyKhoView(AuthenticatedQuanLy):
+    column_list = ['id', 'nguoi_dung']
+    form_columns = ['nguoi_dung_id']
+
+
+class QuanTriView(AuthenticatedQuanLy):
+    column_list = ['id', 'nguoi_dung']
+    form_columns = ['nguoi_dung_id']
+
+
+class KhachHangView(AuthenticatedQuanLy):
     pass
 
 
-class NhanVienView(AuthenticatedQuantri):
-    pass
-
-
-class KhachHangView(AuthenticatedQuantri):
-    pass
-
-
-class QuanLyView(AuthenticatedQuantri):
-    pass
-
-
-class QuanLyKhoView(AuthenticatedQuantri):
-    pass
-
-
-class QuanTriView(AuthenticatedQuantri):
-    pass
-
-
-class NguoiDungView(AuthenticatedQuantri):
+class NguoiDungView(AuthenticatedQuanLy):
     pass
 
 
@@ -118,18 +123,17 @@ class LogoutView(BaseView):
 
 
 admin.add_view(SachView(Sach, db.session))
-admin.add_view(NhaXuatBanView(NhaXuatBan, db.session))
-admin.add_view(TacGiaView(TacGia, db.session))
 admin.add_view(TheLoaiView(TheLoai, db.session))
-admin.add_view(HinhAnhView(HinhAnh, db.session))
 # admin.add_view(QuyDinhNhapSachView(QuyDinhNhapSach, db.session))
 admin.add_view(PhieuNhapView(PhieuNhap, db.session))
 admin.add_view(ChiTietPhieuNhapView(ChiTietPhieuNhap, db.session))
-# admin.add_view(NhanVienView(NhanVien, db.session))
-# admin.add_view(QuanLyView(QuanLy, db.session))
-# admin.add_view(QuanTriView(QuanTriVien, db.session))
-# admin.add_view(QuanLyKhoView(QuanLyKho, db.session))
-# admin.add_view(NguoiDungView(NguoiDung, db.session))
+admin.add_view(NhanVienView(NhanVien, db.session))
+admin.add_view(QuanLyView(QuanLy, db.session))
+admin.add_view(QuanTriView(QuanTriVien, db.session))
+admin.add_view(QuanLyKhoView(QuanLyKho, db.session))
+admin.add_view(KhachHangView(KhachHang, db.session))
+admin.add_view(NguoiDungView(NguoiDung, db.session))
 admin.add_view(BanSachView(name='Bán sách'))
-admin.add_view(ThongKeView(name='Thống kê'))
+admin.add_view(ThongKeTheoDoanhThuView(name='Thống kê theo doanh thu'))
+admin.add_view(ThongKeTheoTanSuatView(name='Thống kê theo tần suất'))
 admin.add_view(LogoutView(name='Logout'))

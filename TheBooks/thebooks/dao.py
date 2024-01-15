@@ -1,7 +1,9 @@
+import datetime
 import hashlib
 import cloudinary.uploader
-from thebooks.models import Sach, TheLoai, NguoiDung, KhachHang, UserRole, DonHang, ChiTietDonHang
+from thebooks.models import Sach, TheLoai, NguoiDung, KhachHang, UserRole, DonHang, ChiTietDonHang, BinhLuan, StatusEnum
 from thebooks import app, db
+from sqlalchemy import func
 from flask_login import current_user
 
 
@@ -53,9 +55,13 @@ def them_nguoi_dung(ten=None,username=None, password=None, sdt=None, email=None,
     return nguoi_dung
 
 
-def them_khach_hang(ten=None,username=None, password=None, sdt=None, email=None, dia_chi=None):
+def them_khach_hang(ten=None,username=None, password=None, sdt=None, email=None, dia_chi=None, avatar=None):
     nguoi_dung = them_nguoi_dung(ten, username, password, sdt, email, dia_chi, UserRole.khach_hang)
     khach_hang = KhachHang(nguoi_dung=nguoi_dung)
+
+    if avatar:
+        res = cloudinary.uploader.upload(avatar)
+        khach_hang.avatar = res['secure_url']
 
     db.session.add(khach_hang)
     db.session.commit()
@@ -74,12 +80,14 @@ def lay_nguoi_dung_theo_id(id):
 def them_don_hang(gio_hang=None, khach_hang_id=None, nhan_vien_id=None):
     if gio_hang:
         khach_hang = lay_nguoi_dung_theo_id(khach_hang_id).khach_hang
-        nhan_vien = lay_nguoi_dung_theo_id(nhan_vien_id).nhan_vien
+        nhan_vien = None
+        if nhan_vien_id:
+            nhan_vien = lay_nguoi_dung_theo_id(nhan_vien_id).nhan_vien
         h = DonHang(khach_hang=khach_hang, nhan_vien=nhan_vien)
         db.session.add(h)
 
         for g in gio_hang.values():
-            c = ChiTietDonHang(sach_id=g['id'], so_luong=g['so_luong'], don_hang=h)
+            c = ChiTietDonHang(sach_id=g['id'], gia=g['gia'], so_luong=g['so_luong'], don_hang=h)
             db.session.add(c)
 
         try:
@@ -96,6 +104,48 @@ def lay_khach_hang_theo_sdt(sdt=None):
     return NguoiDung.query.filter(NguoiDung.sdt.__eq__(sdt)).first()
 
 
+def lay_binh_luan(id):
+    return BinhLuan.query.filter(BinhLuan.sach_id.__eq__(id)).all()
+
+
+def them_binh_luan(sach_id, binh_luan):
+    d = BinhLuan(sach_id=sach_id, binh_luan=binh_luan, khach_hang=current_user.khach_hang)
+    db.session.add(d)
+    db.session.commit()
+
+    return d
+
+
+def thong_ke_doanh_thu_theo_thang(thang=None, nam=None):
+    query = db.session.query(TheLoai.id, TheLoai.ten, func.sum(ChiTietDonHang.so_luong * ChiTietDonHang.gia),
+                             func.sum(ChiTietDonHang.so_luong)) \
+        .join(Sach, Sach.the_loai_id.__eq__(TheLoai.id), isouter=True) \
+        .join(ChiTietDonHang, ChiTietDonHang.sach_id.__eq__(Sach.id)) \
+        .join(DonHang, ChiTietDonHang.don_hang_id.__eq__(DonHang.id))
+    if nam:
+        query = query.filter(func.extract('year', DonHang.ngay_thanh_toan) == nam)
+    if thang:
+        query = query.filter(func.extract('month', DonHang.ngay_thanh_toan) == thang)
+    return query.group_by(TheLoai.id).all()
+
+
+def thong_ke_theo_tan_suat(thang=None, nam=None):
+    query = db.session.query(Sach.id, Sach.ten, TheLoai.ten, func.sum(ChiTietDonHang.so_luong)) \
+        .join(Sach, Sach.the_loai_id.__eq__(TheLoai.id)) \
+        .join(ChiTietDonHang, ChiTietDonHang.sach_id.__eq__(Sach.id)) \
+        .join(DonHang, ChiTietDonHang.don_hang_id.__eq__(DonHang.id))
+
+    if thang:
+        query = query.filter(func.extract('year', DonHang.ngay_thanh_toan) == nam)
+
+    if nam:
+        query = query.filter(func.extract('month', DonHang.ngay_thanh_toan) == thang)
+
+    return query.group_by(Sach.id).order_by(-Sach.id).all()
+
+
+
+
 if __name__ == '__main__':
     with app.app_context():
-        print(chung_thuc_nguoi_dung('12345'))
+        print(thong_ke_theo_tan_suat())

@@ -38,10 +38,11 @@ def register():
             try:
                 dao.them_khach_hang(ten=request.form.get('hoTen'),
                                     username=request.form.get('username'),
-                                    password=request.form.get('password'),
+                                    password=password,
                                     sdt=request.form.get('sdt'),
                                     email=request.form.get('email'),
-                                    dia_chi=request.form.get('diaChi'))
+                                    dia_chi=request.form.get('diaChi'),
+                                    avatar=request.files.get('avatar'))
             except Exception as ex:
                 error_message = str(ex)
             else:
@@ -111,11 +112,15 @@ def add_to_cart():
     if id in gio_hang:
         gio_hang[id]['so_luong'] += 1
     else:
+        sach = dao.lay_sach_theo_id(id)
         gio_hang[id] = {
             'id': id,
-            'ten': data.get('ten'),
-            'gia': data.get('gia'),
-            'so_luong': 1
+            'ten': sach.ten,
+            'gia': sach.gia,
+            'so_luong': 1,
+            'the_loai': sach.the_loai.ten,
+            'tac_gia': sach.tac_gia,
+            'hinh_anh': sach.hinh_anh
         }
 
     session['gio_hang'] = gio_hang
@@ -229,6 +234,34 @@ def pay_order():
         return jsonify({'status': 200})
 
     return jsonify({'status': 500, 'error_message': 'Something wrong!'})
+
+
+@app.route('/ho_so')
+def load_profile():
+    return render_template('profile.html')
+
+
+@app.route('/sach/<id>')
+def details(id):
+    return render_template('details.html',
+                           sach=dao.lay_sach_theo_id(id),
+                           binh_luan=dao.lay_binh_luan(id))
+
+
+@app.route('/api/sach/<id>/binh_luan', methods=['post'])
+def add_comment(id):
+    try:
+        b = dao.them_binh_luan(sach_id=id, binh_luan=request.json.get('binh_luan'))
+    except Exception as ex:
+        return jsonify({'status': 500, 'err_msg': str(ex)})
+    else:
+        return jsonify({'status': 200, 'comment': {
+            'binh_luan': b.binh_luan,
+            'ngay_tao': b.ngay_tao,
+            'khach_hang': {
+                'avatar': b.khach_hang.avatar
+            }
+        }})
 
 
 if __name__ == '__main__':

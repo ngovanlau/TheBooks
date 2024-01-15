@@ -13,11 +13,11 @@
     </div>
     {% for g in session['gio_hang'].values() %}
     <div id="book{{ g.id }}" class="row py-3 mb-4 shadow-sm bg-body-tertiary rounded align-items-center">
-        <div class="col-md-2 me-4" style="width: 10rem;"><img class="w-100" src="{{ url_for('static', filename='images/tro-ve-khong-trai-nghiem-ho-oponopono.jpg') }}"></div>
+        <div class="col-md-2 me-4" style="width: 10rem;"><img class="w-100" src="{{ g.hinh_anh }}"></div>
         <div class="col-md-4 row align-content-center">
             <span class="py-2 col-md-12">Tên: {{ g.ten }}</span>
             <span class="py-2 col-md-12">Thể loại: {{ g.the_loai }}</span>
-            <span class="py-2 col-md-12">Tác giả:
+            <span class="py-2 col-md-12">Tác giả: {{ g.tac_gia }}
                 {% for t in g.tac_gias %}
                 <span>{{ t.ten }}</span>
                 {% endfor %}
@@ -51,4 +51,8 @@
     <div class="alert alert-info">KHÔNG có sản phẩm trong giỏ!</div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 {% endblock %}

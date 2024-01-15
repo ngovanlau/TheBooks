@@ -23,49 +23,21 @@ class TheLoai(BaseModel):
         return self.ten
 
 
-class NhaXuatBan(BaseModel):
-    ten = Column(String(50), nullable=False, unique=True)
-    dia_chi = Column(String(200))
-    sachs = relationship('Sach', backref='nha_xuat_ban', lazy=True)
-
-    def __str__(self):
-        return self.ten
-
-
-tacgia_sach = db.Table('tacgia_sach',
-                       Column('tac_gia_id', Integer, ForeignKey('tac_gia.id'), primary_key=True),
-                       Column('sach_id', Integer, ForeignKey('sach.id'), primary_key=True))
-
-
-class TacGia(BaseModel):
-    ten = Column(String(50), nullable=False)
-
-    def __str__(self):
-        return self.ten
-
-
 class Sach(BaseModel):
     ten = Column(String(50), nullable=False, unique=True)
     gia = Column(Float, default=50000)
     so_luong = Column(Integer, default=0)
-
+    hinh_anh = Column(String(200), default='https://nhasachphuongnam.com/images/thumbnails/730/900/detailed/271/hay-cho-noi-dau-them-thoi-gian.jpg')
+    nxb = Column(String(50))
+    tac_gia = Column(String(100), nullable=False)
     the_loai_id = Column(Integer, ForeignKey(TheLoai.id), nullable=False)
-    nha_xuat_ban_id = Column(Integer, ForeignKey(NhaXuatBan.id), nullable=False)
-    tac_gias = relationship('TacGia', secondary='tacgia_sach', lazy='subquery', backref=backref('sachs', lazy=True))
     phieu_nhaps = relationship('ChiTietPhieuNhap', backref='sach', lazy=True)
-    hinh_anhs = relationship('HinhAnh', backref='sach', lazy=True)
-    khach_hangs = relationship('DanhGia', backref='sach', lazy=True)
+    khach_hangs = relationship('BinhLuan', backref='sach', lazy=True)
     don_hangs = relationship('ChiTietDonHang', backref='sach', lazy=True)
     quy_dinh_nhap_sach = relationship('QuyDinhNhapSach', backref='sach', uselist=False, lazy=True)
 
     def __str__(self):
         return self.ten
-
-
-class HinhAnh(db.Model):
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    hinh_anh = Column(String(200))
-    sach_id = Column(Integer, ForeignKey(Sach.id), nullable=False)
 
 
 class PhieuNhap(db.Model):
@@ -82,10 +54,10 @@ class ChiTietPhieuNhap(db.Model):
     phieu_nhap_id = Column(Integer, ForeignKey(PhieuNhap.id), nullable=False)
 
 
-class DanhGia(db.Model):
+class BinhLuan(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    danh_gia = Column(Integer, default=10)
-    nhan_xet = Column(String(500))
+    binh_luan = Column(String(500))
+    ngay_tao = Column(DateTime, default=datetime.now())
     sach_id = Column(Integer, ForeignKey(Sach.id), nullable=False)
     khach_hang_id = Column(Integer, ForeignKey('khach_hang.id'), nullable=False)
 
@@ -118,10 +90,10 @@ class NguoiDung(BaseModel, UserMixin):
 
 class KhachHang(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    avatar = Column(String(200), default='link')
+    avatar = Column(String(200), default='https://res.cloudinary.com/dlqybjdte/image/upload/v1705253760/default-avatar_walvxe.jpg')
     nguoi_dung_id = Column(Integer, ForeignKey(NguoiDung.id), nullable=False)
-    # sachs = relationship('DanhGia', backref='khach_hang', lazy=True)
     don_hangs = relationship('DonHang', backref='khach_hang', lazy=True)
+    sachs = relationship('BinhLuan', backref='khach_hang', lazy=True)
 
 
 class NhanVien(db.Model):
@@ -140,8 +112,8 @@ class StatusEnum(enum.Enum):
 class DonHang(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     ngay_tao = Column(DateTime, default=datetime.now())
-    status = Column(Enum(StatusEnum), default=StatusEnum.cho_thanh_toan)
-    ngay_thanh_toan = Column(DateTime)
+    status = Column(Enum(StatusEnum), default=StatusEnum.da_thanh_toan)
+    ngay_thanh_toan = Column(DateTime, default=datetime.now())
     ngay_huy = Column(DateTime)
     sachs = relationship('ChiTietDonHang', backref='don_hang', lazy='subquery')
     khach_hang_id = Column(Integer, ForeignKey(KhachHang.id), nullable=False)
@@ -151,6 +123,7 @@ class DonHang(db.Model):
 class ChiTietDonHang(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     so_luong = Column(Integer, default=1)
+    gia = Column(Float, default=0)
     sach_id = Column(Integer, ForeignKey(Sach.id), nullable=False)
     don_hang_id = Column(Integer, ForeignKey(DonHang.id), nullable=False)
 
@@ -182,6 +155,9 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
+        nguoi_dung = NguoiDung(ten='Ngô Văn Lâu', username='vanlau', password='827ccb0eea8a706c4c34a16891f84e7b', email='ngovanlau2003@gmail.com', sdt='0393131096', dia_chi='Hồ Chí Minh', role=UserRole.quan_ly, quan_ly=QuanLy())
+        db.session.add(nguoi_dung)
+
         t1 = TheLoai(ten='Công nghệ thông tin')
         t2 = TheLoai(ten='Lịch sử')
         t3 = TheLoai(ten='Văn học')
@@ -189,32 +165,18 @@ if __name__ == '__main__':
         db.session.add(t2)
         db.session.add(t3)
 
-        tg1 = TacGia(ten='Nguyễn Văn A')
-        tg2 = TacGia(ten='Nguyễn Văn B')
-        tg3 = TacGia(ten='Nguyễn Văn C')
-        db.session.add(tg1)
-        db.session.add(tg2)
-        db.session.add(tg3)
-
-        n1 = NhaXuatBan(ten='NXB A', dia_chi='Ho Chi Minh')
-        n2 = NhaXuatBan(ten='NXB B', dia_chi='Ho Chi Minh')
-        n3 = NhaXuatBan(ten='NXB C', dia_chi='Ho Chi Minh')
-        db.session.add(n1)
-        db.session.add(n2)
-        db.session.add(n3)
-
-        s1 = Sach(ten='Java1', the_loai_id=1, nha_xuat_ban_id=1)
-        s2 = Sach(ten='Javascript2', the_loai_id=2, nha_xuat_ban_id=2)
-        s3 = Sach(ten='Python3', the_loai_id=3, nha_xuat_ban_id=3)
-        s4 = Sach(ten='PHP4', the_loai_id=1, nha_xuat_ban_id=2)
-        s5 = Sach(ten='Docker5', the_loai_id=1, nha_xuat_ban_id=3)
-        s6 = Sach(ten='Java6', the_loai_id=1, nha_xuat_ban_id=1)
-        s7 = Sach(ten='Java7', the_loai_id=1, nha_xuat_ban_id=1)
-        s8 = Sach(ten='PHP6', the_loai_id=2, nha_xuat_ban_id=1)
-        s9 = Sach(ten='Java9', the_loai_id=3, nha_xuat_ban_id=1)
-        s10 = Sach(ten='Docker10', the_loai_id=2, nha_xuat_ban_id=2)
-        s11 = Sach(ten='Java11', the_loai_id=2, nha_xuat_ban_id=3)
-        s12 = Sach(ten='Python12', the_loai_id=3, nha_xuat_ban_id=2)
+        s1 = Sach(ten='Java1', the_loai_id=1, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s2 = Sach(ten='Javascript2', the_loai_id=2, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s3 = Sach(ten='Python3', the_loai_id=3, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s4 = Sach(ten='PHP4', the_loai_id=1, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s5 = Sach(ten='Docker5', the_loai_id=1, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s6 = Sach(ten='Java6', the_loai_id=1, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s7 = Sach(ten='Java7', the_loai_id=1, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s8 = Sach(ten='PHP6', the_loai_id=2, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s9 = Sach(ten='Java9', the_loai_id=3, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s10 = Sach(ten='Docker10', the_loai_id=2, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s11 = Sach(ten='Java11', the_loai_id=2, nxb='NXB A', tac_gia='Nguyễn Văn A')
+        s12 = Sach(ten='Python12', the_loai_id=3, nxb='NXB A', tac_gia='Nguyễn Văn A')
         db.session.add(s1)
         db.session.add(s2)
         db.session.add(s3)

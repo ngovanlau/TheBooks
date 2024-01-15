@@ -4,7 +4,7 @@
 {% block content %}
     <div class="py-4 bg-body-tertiar position-relative">
         <main class="form-signup w-50 m-auto shadow-lg p-5 my-4 bg-body-tertiary rounded bg-light">
-            <form method="post" action="/register" class="container row">
+            <form method="post" action="/register" class="container row" enctype="multipart/form-data">
                 <h1 class="border-bottom the-books">The Book</h1>
                 <h1 class="h3 mb-3 fw-normal d-flex justify-content-center">Đăng kí</h1>
 
@@ -41,6 +41,10 @@
                 <div class="form-floating">
                     <input type="text" class="form-control my-2" name="diaChi" id="floatingAddress" placeholder="Địa chỉ">
                     <label for="floatingAddress" class="ps-4 py-4">Địa chỉ</label>
+                </div>
+                <div class="form-floating">
+                    <input type="file" accept=".png,.jpg" id="floatingAvatar" name="avatar" class="form-control my-2" placeholder="Avatar">
+                    <label for="floatingAvatar" class="ps-4 py-4">Avatar</label>
                 </div>
     
                 <div class="d-flex justify-content-end mt-3">
